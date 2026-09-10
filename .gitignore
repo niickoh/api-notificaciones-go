@@ -1,0 +1,4 @@
+.env
+api-notificaciones-go
+coverage.out
+logs/*.log

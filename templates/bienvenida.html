@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="es">
+<body>
+  <h1>Bienvenida</h1>
+  <p>Hola {{.Nombres}} {{.Apellidos}}</p>
+  <p>Gracias por contactarnos desde {{.EmailFrom}}.</p>
+  {{if .Mensaje}}<p>{{.Mensaje}}</p>{{end}}
+</body>
+</html>
