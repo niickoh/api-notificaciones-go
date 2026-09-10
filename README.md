@@ -14,3 +14,7 @@ go run .
 ```
 
 La API expone `http://localhost:4000` por defecto.
+
+## Documentación
+
+- Especificación OpenAPI: `openapi.yaml`
