@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="es">
+<body>
+  <h1>Contacto UPAC</h1>
+  <p>Nombre: {{.Nombres}} {{.Apellidos}}</p>
+  <p>Correo origen: {{.EmailFrom}}</p>
+  <p>Correo destino: {{.EmailTo}}</p>
+  {{if .Telefono}}<p>Teléfono: {{.Telefono}}</p>{{end}}
+  {{if .Direccion}}<p>Dirección: {{.Direccion}}</p>{{end}}
+  {{if .Comuna}}<p>Comuna: {{.Comuna}}</p>{{end}}
+  {{if .Mensaje}}<p>{{.Mensaje}}</p>{{end}}
+</body>
+</html>

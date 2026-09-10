@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="es">
+<body>
+  <h1>Contacto</h1>
+  <p>Origen: {{.EmailFrom}}</p>
+  <p>Destino: {{.EmailTo}}</p>
+  {{if .Telefono}}<p>Teléfono: {{.Telefono}}</p>{{end}}
+  {{if .Direccion}}<p>Dirección: {{.Direccion}}</p>{{end}}
+  {{if .Comuna}}<p>Comuna: {{.Comuna}}</p>{{end}}
+  {{if .Mensaje}}<p>{{.Mensaje}}</p>{{end}}
+</body>
+</html>
