@@ -9,5 +9,6 @@ FROM alpine:3.20
 WORKDIR /app
 COPY --from=build /app/api-notificaciones-go ./api-notificaciones-go
 COPY --from=build /app/templates ./templates
+COPY --from=build /app/openapi.yaml ./openapi.yaml
 EXPOSE 4000
 CMD ["./api-notificaciones-go"]
