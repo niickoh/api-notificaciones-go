@@ -34,19 +34,39 @@ func RecoverMiddleware(next http.Handler) http.Handler {
 }
 
 // CORSMiddleware habilita CORS para la API.
-func CORSMiddleware(origin string) Middleware {
-	if origin == "" {
-		origin = "*"
+// origins acepta "*" o una lista separada por comas
+// (ej: "https://dev.sportspherecenter.com,http://localhost:3000").
+func CORSMiddleware(origins string) Middleware {
+	allowAll := false
+	allowed := map[string]bool{}
+	for _, o := range strings.Split(origins, ",") {
+		o = strings.TrimRight(strings.TrimSpace(o), "/")
+		if o == "*" {
+			allowAll = true
+		} else if o != "" {
+			allowed[o] = true
+		}
+	}
+	if len(allowed) == 0 {
+		allowAll = true
 	}
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Add("Vary", "Origin")
+
+			requestOrigin := r.Header.Get("Origin")
+			if allowAll {
+				w.Header().Set("Access-Control-Allow-Origin", "*")
+			} else if allowed[requestOrigin] {
+				w.Header().Set("Access-Control-Allow-Origin", requestOrigin)
+			}
 			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-API-Key")
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Max-Age", "600")
 
 			if r.Method == http.MethodOptions {
-				w.WriteHeader(http.StatusOK)
+				w.WriteHeader(http.StatusNoContent)
 				return
 			}
 

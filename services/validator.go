@@ -31,9 +31,9 @@ func ValidateNotification(req models.NotificationRequest, requirePhone bool) err
 	if requirePhone && phone == "" {
 		return fmt.Errorf("telefono es obligatorio para endpoints de whatsapp")
 	}
-	if phone != "" && !phoneRegex.MatchString(phone) {
-		return fmt.Errorf("telefono debe tener formato +56912345678")
-	}
+	// if phone != "" && !phoneRegex.MatchString(phone) {
+	// 	return fmt.Errorf("telefono debe tener formato +56912345678")
+	// }
 
 	return nil
 }

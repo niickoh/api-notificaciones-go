@@ -14,7 +14,7 @@ import (
 	"github.com/niickoh/api-notificaciones-go/models"
 )
 
-const whatsappEndpointBase = "https://graph.instagram.com/v18.0"
+const whatsappEndpointBase = "https://graph.facebook.com/v25.0"
 
 // WhatsAppSender abstrae el envío de mensajes de WhatsApp.
 type WhatsAppSender interface {
@@ -48,9 +48,31 @@ func (s *WhatsAppService) Send(messageType string, payload models.NotificationRe
 	requestBody := map[string]any{
 		"messaging_product": "whatsapp",
 		"to":                payload.Telefono,
-		"type":              "text",
-		"text": map[string]string{
-			"body": buildWhatsAppMessage(messageType, payload),
+		"type":              "template",
+		"template": map[string]any{
+			"name": "jaspers_market_order_confirmation_v1",
+			"language": map[string]string{
+				"code": "en_US",
+			},
+			"components": []any{
+				map[string]any{
+					"type": "body",
+					"parameters": []any{
+						map[string]string{
+							"type": "text",
+							"text": buildWhatsAppMessage(messageType, payload),
+						},
+						map[string]string{
+							"type": "text",
+							"text": "123456",
+						},
+						map[string]string{
+							"type": "text",
+							"text": "prueba",
+						},
+					},
+				},
+			},
 		},
 	}
 
@@ -60,11 +82,21 @@ func (s *WhatsAppService) Send(messageType string, payload models.NotificationRe
 	}
 
 	endpoint := fmt.Sprintf("%s/%s/messages", strings.TrimRight(s.endpointBase, "/"), s.phoneID)
+
+	fmt.Printf("WA endpoint=%s\n", endpoint)
+	fmt.Printf("WA request body=%s\n", string(body))
 	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(body))
 	if err != nil {
 		return models.NotificationResult{}, err
 	}
-	req.Header.Set("Authorization", "Bearer "+s.token)
+
+	token := strings.TrimSpace(s.token)
+	token = strings.ReplaceAll(token, "\n", "")
+	token = strings.ReplaceAll(token, "\r", "")
+	fmt.Printf("WA token=%s\n", token)
+	fmt.Printf("requestBody =%s\n", string(body))
+
+	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := s.client.Do(req)

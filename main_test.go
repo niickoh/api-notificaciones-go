@@ -149,3 +149,32 @@ func bearerToken(t *testing.T, secret string) string {
 	}
 	return "Bearer " + signed
 }
+
+func TestCORSPreflightAllowsConfiguredOrigin(t *testing.T) {
+	cfg := testConfig()
+	cfg.CORSOrigin = "https://dev.sportspherecenter.com, http://localhost:3000"
+	handler := newHandler(cfg, stubMailSender{}, stubWhatsAppSender{})
+
+	preflight := func(origin string) *httptest.ResponseRecorder {
+		req := httptest.NewRequest(http.MethodOptions, "/mail/contacto", nil)
+		req.Header.Set("Origin", origin)
+		req.Header.Set("Access-Control-Request-Method", "POST")
+		req.Header.Set("Access-Control-Request-Headers", "authorization, content-type")
+		resp := httptest.NewRecorder()
+		handler.ServeHTTP(resp, req)
+		return resp
+	}
+
+	ok := preflight("https://dev.sportspherecenter.com")
+	if ok.Code != http.StatusNoContent {
+		t.Fatalf("expected 204, got %d", ok.Code)
+	}
+	if got := ok.Header().Get("Access-Control-Allow-Origin"); got != "https://dev.sportspherecenter.com" {
+		t.Fatalf("unexpected Access-Control-Allow-Origin %q", got)
+	}
+
+	denied := preflight("https://evil.example.com")
+	if got := denied.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Fatalf("expected no Access-Control-Allow-Origin, got %q", got)
+	}
+}
