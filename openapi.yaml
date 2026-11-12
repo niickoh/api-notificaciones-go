@@ -4,7 +4,8 @@ info:
   version: 1.0.0
   description: API minimal para enviar notificaciones de mail y WhatsApp.
 servers:
-  - url: /
+  # relativo al openapi.yaml: funciona en localhost, en el dominio y bajo un prefijo de nginx
+  - url: ./
 components:
   securitySchemes:
     bearerAuth:

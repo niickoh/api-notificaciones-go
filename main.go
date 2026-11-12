@@ -32,15 +32,14 @@ func newHandler(cfg config.Config, mailSender services.MailSender, whatsappSende
 	// ✅ Servir el archivo OpenAPI
 	root.HandleFunc("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/yaml")
+		w.Header().Set("Cache-Control", "no-cache") // evita que el navegador siga usando un spec viejo
 		http.ServeFile(w, r, "openapi.yaml")
 	})
 
 	// ✅ Servir Swagger UI
-	// ✅ Servir Swagger UI
-	// ✅ Servir Swagger UI - Versión FUNCIONAL
-	// ✅ Servir Swagger UI - Versión LOCAL que FUNCIONA
 root.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-cache")
 	w.WriteHeader(http.StatusOK)
 	html := `<!DOCTYPE html>
 <html>
@@ -57,12 +56,11 @@ root.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
 </head>
 <body>
 	<div id="swagger-ui"></div>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.0/swagger-ui.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.0/swagger-ui-bundle.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.0/swagger-ui-standalone-preset.min.js"></script>
 	<script>
 		const ui = SwaggerUIBundle({
-			url: "/openapi.yaml",
+			url: "openapi.yaml", // relativo a /docs, así respeta el dominio y un posible prefijo de nginx
 			dom_id: '#swagger-ui',
 			presets: [
 				SwaggerUIBundle.presets.apis,
