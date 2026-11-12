@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: API minimal para enviar notificaciones de mail y WhatsApp.
 servers:
-  - url: http://localhost:4000
+  - url: /
 components:
   securitySchemes:
     bearerAuth:
