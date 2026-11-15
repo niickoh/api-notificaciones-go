@@ -16,12 +16,23 @@ func newHandler(cfg config.Config, mailSender services.MailSender, whatsappSende
 	apiKeyLimiter := services.NewFixedWindowLimiter(cfg.RateLimitAPIKey, time.Hour)
 
 	mailHandler := handlers.NewMailHandler(mailSender)
+	sportsphere := handlers.NewSportSphereMailHandler(mailSender, cfg)
 	whatsappHandler := handlers.NewWhatsAppHandler(whatsappSender)
+
+	// withSlash registra la ruta con y sin "/" final (el front llama p. ej. /mail/contacto/).
+	withSlash := func(mux *http.ServeMux, path string, h http.Handler) {
+		mux.Handle(path, h)
+		mux.Handle(path+"/", h)
+	}
 
 	protected := http.NewServeMux()
 	protected.HandleFunc("/mail/bienvenida", mailHandler.Bienvenida)
-	protected.HandleFunc("/mail/contacto", mailHandler.Contacto)
 	protected.HandleFunc("/mail/contacto-upac", mailHandler.ContactoUPAC)
+	// Plantillas SportSphere: un endpoint por plantilla
+	withSlash(protected, "/mail/aviso", http.HandlerFunc(sportsphere.Aviso))
+	withSlash(protected, "/mail/evento", http.HandlerFunc(sportsphere.Evento))
+	withSlash(protected, "/mail/bienvenidaNew", http.HandlerFunc(sportsphere.UsuarioCreado))
+	withSlash(protected, "/mail/asignacionEquipo", http.HandlerFunc(sportsphere.AsignacionEquipo))
 	protected.HandleFunc("/whatsapp/bienvenida", whatsappHandler.Bienvenida)
 	protected.HandleFunc("/whatsapp/contacto", whatsappHandler.Contacto)
 	protected.HandleFunc("/whatsapp/contacto-upac", whatsappHandler.ContactoUPAC)
@@ -81,6 +92,11 @@ root.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
 	)
 	root.Handle("/mail/", protectedChain)
 	root.Handle("/whatsapp/", protectedChain)
+	// Contacto es público (formulario de la landing, sin sesión): solo rate limit, sin JWT.
+	withSlash(root, "/mail/contacto", handlers.Chain(
+		http.HandlerFunc(sportsphere.Contacto),
+		handlers.RateLimitMiddleware(ipLimiter, apiKeyLimiter),
+	))
 
 	return handlers.Chain(
 		root,

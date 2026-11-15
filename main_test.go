@@ -19,6 +19,10 @@ func (stubMailSender) Send(string, models.NotificationRequest) (models.Notificat
 	return models.NotificationResult{MessageID: "mail-123", Timestamp: time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)}, nil
 }
 
+func (stubMailSender) SendMessages([]models.MailMessage) (models.NotificationResult, error) {
+	return models.NotificationResult{MessageID: "mail-123", Timestamp: time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)}, nil
+}
+
 type stubWhatsAppSender struct{}
 
 func (stubWhatsAppSender) Send(string, models.NotificationRequest) (models.NotificationResult, error) {

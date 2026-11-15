@@ -13,6 +13,14 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    Destinatarios:
+      type: array
+      items:
+        type: object
+        required: [email]
+        properties:
+          email: {type: string, format: email, example: atleta@example.com}
+          name: {type: string, example: Sofía}
     NotificationRequest:
       type: object
       required:
@@ -127,16 +135,23 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /mail/contacto:
     post:
-      summary: Envía correo de contacto
-      security:
-        - bearerAuth: []
+      summary: Formulario de contacto (plantilla contacto). Público, llega a CONTACT_EMAIL_TO
+      description: No requiere JWT (solo rate limit). Se responde al remitente vía ReplyTo. También acepta /mail/contacto/.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NotificationRequest'
-      responses:
+              type: object
+              required: [name, email, message]
+              properties:
+                name: {type: string, example: Sofía Ramírez}
+                email: {type: string, format: email, example: sofia@example.com}
+                message: {type: string, example: "Hola, quiero una demo."}
+                club: {type: string, example: UPAC}
+                telefono: {type: string, example: +56 9 1234 5678}
+                deportistas: {type: string, example: "30"}
+      responses: &sphereResponses
         '200':
           description: Correo enviado
           content:
@@ -161,12 +176,106 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Error interno
+        '502':
+          description: Fallo en Mailjet
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /mail/aviso:
+    post:
+      summary: Aviso a atletas (plantilla aviso). Un correo personalizado por destinatario
+      description: Acepta destinatarios (lista) o email + name sueltos. prioridad normal | importante | urgente.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [titulo, mensaje]
+              properties:
+                destinatarios: {$ref: '#/components/schemas/Destinatarios'}
+                email: {type: string, format: email}
+                name: {type: string}
+                titulo: {type: string, example: Cambio de horario}
+                mensaje: {type: string, example: El jueves entrenamos a las 19:00.}
+                prioridad: {type: string, enum: [normal, importante, urgente]}
+                autor: {type: string, example: Coach Camila}
+                equipo: {type: string, example: Galaxy}
+                url: {type: string, example: https://dev.sportspherecenter.com/}
+      responses: *sphereResponses
+  /mail/evento:
+    post:
+      summary: Evento de calendario (plantilla evento). Un correo personalizado por destinatario
+      description: Acepta destinatarios (lista) o email + name sueltos. estado nuevo | modificado | cancelado.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [titulo, fecha_inicio]
+              properties:
+                destinatarios: {$ref: '#/components/schemas/Destinatarios'}
+                email: {type: string, format: email}
+                name: {type: string}
+                titulo: {type: string, example: Entrenamiento técnico}
+                tipo: {type: string, example: ENTRENAMIENTO}
+                estado: {type: string, enum: [nuevo, modificado, cancelado]}
+                fecha_inicio: {type: string, example: "2026-11-17T18:30:00"}
+                fecha_fin: {type: string, example: "2026-11-17T20:30:00"}
+                ubicacion: {type: string, example: Gimnasio UPAC}
+                equipo: {type: string, example: Galaxy}
+                descripcion: {type: string, example: Traer botella de agua.}
+                url: {type: string, example: https://dev.sportspherecenter.com/}
+      responses: *sphereResponses
+  /mail/bienvenidaNew:
+    post:
+      summary: Usuario creado (plantilla usuario-creado) con sus datos de acceso
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, username]
+              properties:
+                email: {type: string, format: email, example: sofia@example.com}
+                name: {type: string, example: Sofía}
+                username: {type: string, example: sofia.r}
+                password: {type: string, example: Temp2026!}
+                rol: {type: string, example: Atleta}
+                club: {type: string, example: UPAC All Stars}
+                url: {type: string, description: "Opcional, por defecto PORTAL_URL"}
+      responses: *sphereResponses
+  /mail/asignacionEquipo:
+    post:
+      summary: Asignación a equipo (plantilla asignacion-equipo)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, equipo]
+              properties:
+                email: {type: string, format: email, example: sofia@example.com}
+                name: {type: string, example: Sofía}
+                equipo: {type: string, example: Galaxy}
+                rol: {type: string, example: Atleta}
+                entrenador: {type: string, example: Camila Rojas}
+                club: {type: string, example: UPAC}
+                color: {type: string, description: "Solo hex; si no, se usa #359FD8", example: '#E91E63'}
+                url: {type: string, description: "Opcional, por defecto PORTAL_URL"}
+      responses: *sphereResponses
   /mail/contacto-upac:
     post:
       summary: Envía correo de contacto UPAC

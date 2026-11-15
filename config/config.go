@@ -21,18 +21,23 @@ type Config struct {
 	RateLimitAPIKey   int
 	CORSOrigin        string
 	TemplatesDir      string
+	ContactEmailTo    string
+	PortalURL         string
 }
 
 // Load obtiene la configuración desde variables de entorno y aplica defaults.
 func Load() Config {
 	_ = godotenv.Load()
 
+	fromEmail := getEnv("MAILJET_FROM_EMAIL", "noreply@tudominio.com")
 	return Config{
+		ContactEmailTo:    getEnv("CONTACT_EMAIL_TO", fromEmail),
+		PortalURL:         getEnv("PORTAL_URL", "https://dev.sportspherecenter.com/"),
 		Port:              getEnv("PORT", "4000"),
 		JWTSecret:         getEnv("JWT_SECRET", "bascodelab-0317"),
 		MailjetAPIKey:     getEnv("MAILJET_API_KEY", ""),
 		MailjetAPISecret:  getEnv("MAILJET_API_SECRET", ""),
-		MailjetFromEmail:  getEnv("MAILJET_FROM_EMAIL", "noreply@tudominio.com"),
+		MailjetFromEmail:  fromEmail,
 		MailjetFromName:   getEnv("MAILJET_FROM_NAME", "Tu Nombre"),
 		MetaWhatsAppToken: getEnv("META_WHATSAPP_TOKEN", ""),
 		MetaWhatsAppPhone: getEnv("META_WHATSAPP_PHONE_ID", ""),

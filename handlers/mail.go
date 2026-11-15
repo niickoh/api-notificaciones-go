@@ -24,11 +24,6 @@ func (h *MailHandler) Bienvenida(w http.ResponseWriter, r *http.Request) {
 	h.handle(w, r, "bienvenida")
 }
 
-// Contacto procesa POST /mail/contacto.
-func (h *MailHandler) Contacto(w http.ResponseWriter, r *http.Request) {
-	h.handle(w, r, "contacto")
-}
-
 // ContactoUPAC procesa POST /mail/contacto-upac.
 func (h *MailHandler) ContactoUPAC(w http.ResponseWriter, r *http.Request) {
 	h.handle(w, r, "contacto-upac")
