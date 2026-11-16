@@ -64,9 +64,7 @@ func (s *MailjetService) Send(templateName string, payload models.NotificationRe
 		"To": []map[string]string{{
 			"Email": payload.EmailTo,
 		}},
-		"ReplyTo": map[string]string{
-			"Email": payload.EmailFrom,
-		},
+		// Sin Reply-To: email_from suele ser un correo gratuito y Rspamd lo marca como spam; ya va en el cuerpo.
 		"Subject":  mailSubject(templateName),
 		"HTMLPart": htmlBody,
 	}})

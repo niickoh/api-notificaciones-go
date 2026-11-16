@@ -113,14 +113,19 @@ func TestSportSphereTemplatesRender(t *testing.T) {
 	}
 }
 
-func TestContactoSetsReplyToSender(t *testing.T) {
+// Un Reply-To con correo gratuito dispara SPOOF_REPLYTO en Rspamd: el correo va en el cuerpo, no en Reply-To.
+func TestContactoPutsSenderInBodyNotReplyTo(t *testing.T) {
 	sender := &recordingMailSender{}
 	resp := postMail(t, sender, "/mail/contacto", `{"name":"Sofía","email":"sofia@example.com","message":"Hola"}`, true)
 	if resp.Code != http.StatusOK || len(sender.sent) != 1 {
 		t.Fatalf("expected 200 with 1 message, got %d body=%s", resp.Code, resp.Body.String())
 	}
-	if r := sender.sent[0].ReplyTo; r == nil || r.Email != "sofia@example.com" {
-		t.Fatalf("unexpected ReplyTo %+v", r)
+	m := sender.sent[0]
+	if m.ReplyTo != nil {
+		t.Fatalf("expected no ReplyTo, got %+v", m.ReplyTo)
+	}
+	if !strings.Contains(m.Text, "sofia@example.com") || !strings.Contains(m.HTML, "sofia@example.com") {
+		t.Fatalf("sender email missing from body")
 	}
 }
 

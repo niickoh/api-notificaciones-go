@@ -38,7 +38,7 @@ func NewSportSphereMailHandler(sender services.MailSender, cfg config.Config) *S
 	}
 }
 
-// Contacto procesa POST /mail/contacto: el mensaje llega a CONTACT_EMAIL_TO y se responde vía ReplyTo.
+// Contacto procesa POST /mail/contacto: el mensaje llega a CONTACT_EMAIL_TO con el correo del visitante en el cuerpo.
 func (h *SportSphereMailHandler) Contacto(w http.ResponseWriter, r *http.Request) {
 	var p models.ContactoRequest
 	if !decodePost(w, r, &p) {
@@ -81,9 +81,10 @@ func (h *SportSphereMailHandler) Contacto(w http.ResponseWriter, r *http.Request
 	}
 	text := append([]string{"Nombre: " + name, "Correo: " + p.Email}, extra...)
 	text = append(text, "", "Mensaje:", p.Message)
+	// Sin Reply-To: uno gratuito (Gmail, Hotmail...) distinto del From suma ~8 puntos de spam en Rspamd.
+	// El correo del visitante ya va en el cuerpo.
 	h.send(w, []models.MailMessage{{
 		To:      models.Recipient{Email: h.contactEmailTo, Name: "Administrador"},
-		ReplyTo: &models.Recipient{Email: p.Email, Name: name},
 		Subject: "Nuevo mensaje de contacto de " + name,
 		Text:    strings.Join(text, "\n"),
 		HTML:    html,
