@@ -137,7 +137,7 @@ func (s *MailjetService) post(messages []map[string]any) (models.NotificationRes
 	var parsed struct {
 		Messages []struct {
 			To []struct {
-				MessageID any `json:"MessageID"`
+				MessageID json.Number `json:"MessageID"`
 			} `json:"To"`
 		} `json:"Messages"`
 	}
@@ -146,8 +146,8 @@ func (s *MailjetService) post(messages []map[string]any) (models.NotificationRes
 	}
 
 	messageID := fmt.Sprintf("%d", time.Now().UnixNano())
-	if len(parsed.Messages) > 0 && len(parsed.Messages[0].To) > 0 && parsed.Messages[0].To[0].MessageID != nil {
-		messageID = fmt.Sprintf("%v", parsed.Messages[0].To[0].MessageID)
+	if len(parsed.Messages) > 0 && len(parsed.Messages[0].To) > 0 && parsed.Messages[0].To[0].MessageID != "" {
+		messageID = parsed.Messages[0].To[0].MessageID.String()
 	}
 
 	return models.NotificationResult{MessageID: messageID, Timestamp: time.Now().UTC()}, nil
