@@ -14,6 +14,7 @@ func newHandler(cfg config.Config, mailSender services.MailSender, whatsappSende
 	jwtService := services.NewJWTService(cfg.JWTSecret)
 	ipLimiter := services.NewFixedWindowLimiter(cfg.RateLimitIP, time.Hour)
 	apiKeyLimiter := services.NewFixedWindowLimiter(cfg.RateLimitAPIKey, time.Hour)
+	contactoLimiter := services.NewFixedWindowLimiter(cfg.RateLimitContacto, time.Hour)
 
 	mailHandler := handlers.NewMailHandler(mailSender)
 	sportsphere := handlers.NewSportSphereMailHandler(mailSender, cfg)
@@ -28,8 +29,7 @@ func newHandler(cfg config.Config, mailSender services.MailSender, whatsappSende
 	protected := http.NewServeMux()
 	protected.HandleFunc("/mail/bienvenida", mailHandler.Bienvenida)
 	protected.HandleFunc("/mail/contacto-upac", mailHandler.ContactoUPAC)
-	// Plantillas SportSphere: un endpoint por plantilla
-	withSlash(protected, "/mail/contacto", http.HandlerFunc(sportsphere.Contacto))
+	// Plantillas SportSphere: un endpoint por plantilla (/mail/contacto es público, ver más abajo)
 	withSlash(protected, "/mail/aviso", http.HandlerFunc(sportsphere.Aviso))
 	withSlash(protected, "/mail/evento", http.HandlerFunc(sportsphere.Evento))
 	withSlash(protected, "/mail/bienvenidaNew", http.HandlerFunc(sportsphere.UsuarioCreado))
@@ -92,6 +92,12 @@ root.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
 		handlers.AuthMiddleware(jwtService),
 	)
 	root.Handle("/mail/", protectedChain)
+	// Formulario de contacto de la landing: lo usan visitantes sin sesión, así que no pide JWT.
+	// El destinatario es fijo (CONTACT_EMAIL_TO) y se limita por IP para frenar el spam.
+	withSlash(root, "/mail/contacto", handlers.Chain(
+		http.HandlerFunc(sportsphere.Contacto),
+		handlers.RateLimitMiddleware(contactoLimiter, apiKeyLimiter),
+	))
 	root.Handle("/whatsapp/", protectedChain)
 
 	return handlers.Chain(

@@ -20,6 +20,7 @@ type Config struct {
 	MetaWhatsAppPhone string
 	RateLimitIP       int
 	RateLimitAPIKey   int
+	RateLimitContacto int
 	CORSOrigin        string
 	TemplatesDir      string
 	ContactEmailTo    string
@@ -45,6 +46,8 @@ func Load() Config {
 		MetaWhatsAppPhone: getEnv("META_WHATSAPP_PHONE_ID", ""),
 		RateLimitIP:       getEnvInt("RATE_LIMIT_IP", 100),
 		RateLimitAPIKey:   getEnvInt("RATE_LIMIT_API_KEY", 1000),
+		// /mail/contacto es público (formulario de la landing): límite por IP más estricto
+		RateLimitContacto: getEnvInt("RATE_LIMIT_CONTACTO", 5),
 		CORSOrigin:        getEnv("CORS_ORIGIN", "*"),
 		TemplatesDir:      getEnv("TEMPLATES_DIR", "templates"),
 	}

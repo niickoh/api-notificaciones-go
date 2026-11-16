@@ -125,11 +125,42 @@ func TestContactoSetsReplyToSender(t *testing.T) {
 }
 
 func TestStaffTemplatesRequireJWT(t *testing.T) {
-	for _, path := range []string{"/mail/contacto", "/mail/contacto/", "/mail/aviso", "/mail/evento/", "/mail/bienvenidaNew", "/mail/asignacionEquipo/"} {
+	for _, path := range []string{"/mail/contacto-upac", "/mail/aviso", "/mail/evento/", "/mail/bienvenidaNew", "/mail/asignacionEquipo/"} {
 		resp := postMail(t, &recordingMailSender{}, path, `{}`, false)
 		if resp.Code != http.StatusUnauthorized {
 			t.Errorf("%s: expected 401, got %d", path, resp.Code)
 		}
+	}
+}
+
+// El formulario de la landing lo envían visitantes sin sesión: sin JWT, pero con límite por IP.
+func TestContactoIsPublicAndRateLimited(t *testing.T) {
+	cfg := testConfig()
+	cfg.ContactEmailTo = "admin@sportsphere.test"
+	cfg.RateLimitContacto = 2
+	sender := &recordingMailSender{}
+	handler := newHandler(cfg, sender, stubWhatsAppSender{})
+
+	post := func(path string) int {
+		req := httptest.NewRequest(http.MethodPost, path, bytes.NewBufferString(`{"name":"Sofía","email":"sofia@example.com","message":"Hola, quiero una demo"}`))
+		req.Header.Set("Content-Type", "application/json")
+		req.RemoteAddr = "203.0.113.7:1234"
+		resp := httptest.NewRecorder()
+		handler.ServeHTTP(resp, req)
+		return resp.Code
+	}
+
+	if code := post("/mail/contacto/"); code != http.StatusOK {
+		t.Fatalf("/mail/contacto/ sin JWT: expected 200, got %d", code)
+	}
+	if code := post("/mail/contacto"); code != http.StatusOK {
+		t.Fatalf("/mail/contacto sin JWT: expected 200, got %d", code)
+	}
+	if code := post("/mail/contacto"); code != http.StatusTooManyRequests {
+		t.Fatalf("tercer envío desde la misma IP: expected 429, got %d", code)
+	}
+	if len(sender.sent) != 2 {
+		t.Fatalf("expected 2 correos enviados, got %d", len(sender.sent))
 	}
 }
 

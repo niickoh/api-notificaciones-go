@@ -136,9 +136,8 @@ paths:
   /mail/contacto:
     post:
       summary: Formulario de contacto (plantilla contacto). Llega a CONTACT_EMAIL_TO
-      description: Requiere JWT. Se responde al remitente vía ReplyTo. También acepta /mail/contacto/.
-      security:
-        - bearerAuth: []
+      description: Público (sin JWT), para visitantes de la landing. Limitado por IP a RATE_LIMIT_CONTACTO envíos por hora (5 por defecto). Se responde al remitente vía ReplyTo. También acepta /mail/contacto/.
+      security: []
       requestBody:
         required: true
         content:
