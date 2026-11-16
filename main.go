@@ -117,6 +117,7 @@ func main() {
 	}
 
 	log.Printf("api de notificaciones escuchando en :%s", cfg.Port)
+	log.Printf("/mail/contacto envía a: %q (CONTACT_EMAIL_TO)", cfg.ContactEmailTo)
 	log.Printf("📚 Documentación Swagger en: http://localhost:%s/docs", cfg.Port)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)

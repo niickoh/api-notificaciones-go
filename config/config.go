@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -31,7 +32,8 @@ func Load() Config {
 
 	fromEmail := getEnv("MAILJET_FROM_EMAIL", "noreply@tudominio.com")
 	return Config{
-		ContactEmailTo:    getEnv("CONTACT_EMAIL_TO", fromEmail),
+		// Sin fallback a MAILJET_FROM_EMAIL: si falta, /mail/contacto responde 503 en vez de mandar a noreply en silencio.
+		ContactEmailTo:    strings.Trim(os.Getenv("CONTACT_EMAIL_TO"), " \t\r\n\"'"),
 		PortalURL:         getEnv("PORTAL_URL", "https://dev.sportspherecenter.com/"),
 		Port:              getEnv("PORT", "4000"),
 		JWTSecret:         getEnv("JWT_SECRET", "bascodelab-0317"),
