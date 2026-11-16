@@ -135,8 +135,10 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /mail/contacto:
     post:
-      summary: Formulario de contacto (plantilla contacto). Público, llega a CONTACT_EMAIL_TO
-      description: No requiere JWT (solo rate limit). Se responde al remitente vía ReplyTo. También acepta /mail/contacto/.
+      summary: Formulario de contacto (plantilla contacto). Llega a CONTACT_EMAIL_TO
+      description: Requiere JWT. Se responde al remitente vía ReplyTo. También acepta /mail/contacto/.
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:

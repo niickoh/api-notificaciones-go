@@ -47,7 +47,7 @@ func TestSportSphereTemplatesRender(t *testing.T) {
 		wantHTML         []string
 	}{
 		{
-			name: "contacto", path: "/mail/contacto/", jwt: false,
+			name: "contacto", path: "/mail/contacto/", jwt: true,
 			body:        `{"name":"Sofía <b>","email":"sofia@example.com","message":"Hola,\nquiero una demo.","club":"UPAC","telefono":"+56 9 1234 5678","deportistas":"30"}`,
 			wantTo:      []string{"admin@sportsphere.test"},
 			wantSubject: "Nuevo mensaje de contacto de Sofía <b>",
@@ -115,7 +115,7 @@ func TestSportSphereTemplatesRender(t *testing.T) {
 
 func TestContactoSetsReplyToSender(t *testing.T) {
 	sender := &recordingMailSender{}
-	resp := postMail(t, sender, "/mail/contacto", `{"name":"Sofía","email":"sofia@example.com","message":"Hola"}`, false)
+	resp := postMail(t, sender, "/mail/contacto", `{"name":"Sofía","email":"sofia@example.com","message":"Hola"}`, true)
 	if resp.Code != http.StatusOK || len(sender.sent) != 1 {
 		t.Fatalf("expected 200 with 1 message, got %d body=%s", resp.Code, resp.Body.String())
 	}
@@ -125,7 +125,7 @@ func TestContactoSetsReplyToSender(t *testing.T) {
 }
 
 func TestStaffTemplatesRequireJWT(t *testing.T) {
-	for _, path := range []string{"/mail/aviso", "/mail/evento/", "/mail/bienvenidaNew", "/mail/asignacionEquipo/"} {
+	for _, path := range []string{"/mail/contacto", "/mail/contacto/", "/mail/aviso", "/mail/evento/", "/mail/bienvenidaNew", "/mail/asignacionEquipo/"} {
 		resp := postMail(t, &recordingMailSender{}, path, `{}`, false)
 		if resp.Code != http.StatusUnauthorized {
 			t.Errorf("%s: expected 401, got %d", path, resp.Code)

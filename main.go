@@ -29,6 +29,7 @@ func newHandler(cfg config.Config, mailSender services.MailSender, whatsappSende
 	protected.HandleFunc("/mail/bienvenida", mailHandler.Bienvenida)
 	protected.HandleFunc("/mail/contacto-upac", mailHandler.ContactoUPAC)
 	// Plantillas SportSphere: un endpoint por plantilla
+	withSlash(protected, "/mail/contacto", http.HandlerFunc(sportsphere.Contacto))
 	withSlash(protected, "/mail/aviso", http.HandlerFunc(sportsphere.Aviso))
 	withSlash(protected, "/mail/evento", http.HandlerFunc(sportsphere.Evento))
 	withSlash(protected, "/mail/bienvenidaNew", http.HandlerFunc(sportsphere.UsuarioCreado))
@@ -92,11 +93,6 @@ root.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
 	)
 	root.Handle("/mail/", protectedChain)
 	root.Handle("/whatsapp/", protectedChain)
-	// Contacto es público (formulario de la landing, sin sesión): solo rate limit, sin JWT.
-	withSlash(root, "/mail/contacto", handlers.Chain(
-		http.HandlerFunc(sportsphere.Contacto),
-		handlers.RateLimitMiddleware(ipLimiter, apiKeyLimiter),
-	))
 
 	return handlers.Chain(
 		root,
